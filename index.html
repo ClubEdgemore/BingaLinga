@@ -404,8 +404,8 @@
     } else {
       state = { t: title, i: items, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
     }
-    location.hash = 'c=' + encodeState(state);
-    loadFromHash();
+    history.pushState(null, '', '?c=' + encodeState(state));
+    loadFromQuery();
   });
 
   // ---------- PLAY VIEW ----------
@@ -526,7 +526,7 @@
   }
 
   function updateShareLink(){
-    const url = location.origin + location.pathname + '#c=' + encodeState(currentState);
+    const url = location.origin + location.pathname + '?c=' + encodeState(currentState);
     shareLinkInput.value = url;
   }
   if(navigator.share){ copyBtn.textContent = 'Share link'; }
@@ -548,7 +548,7 @@
   printBtn.addEventListener('click', () => window.print());
   resetBtn.addEventListener('click', () => {
     if(pollId) clearInterval(pollId);
-    location.hash = '';
+    history.pushState(null, '', location.pathname);
     playView.classList.add('hidden');
     builderView.classList.remove('hidden');
   });
@@ -597,10 +597,15 @@
     renderLeaderboard({});
   });
 
-  function loadFromHash(){
-    const hash = location.hash.replace(/^#/, '');
-    if(hash.startsWith('c=')){
-      const state = decodeState(hash.slice(2));
+  function loadFromQuery(){
+    const params = new URLSearchParams(location.search);
+    const c = params.get('c');
+    // Back-compat: still honor old links that used a #c=... fragment.
+    const legacy = !c && location.hash.replace(/^#/, '').startsWith('c=')
+      ? location.hash.replace(/^#/, '').slice(2) : null;
+    const encoded = c || legacy;
+    if(encoded){
+      const state = decodeState(encoded);
       if(state && resolveItems(state).length){
         builderView.classList.add('hidden');
         playView.classList.remove('hidden');
@@ -613,9 +618,9 @@
     playView.classList.add('hidden');
   }
 
-  window.addEventListener('hashchange', loadFromHash);
+  window.addEventListener('popstate', loadFromQuery);
   updateHints();
-  loadFromHash();
+  loadFromQuery();
 })();
 </script>
 </body>
