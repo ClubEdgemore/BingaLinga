@@ -394,7 +394,16 @@
       return;
     }
     const overflowMode = (document.querySelector('input[name="overflow"]:checked') || {}).value || 'cycle';
-    const state = { t: title, i: items, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
+    // If the items exactly match an unedited built-in theme, share just the theme
+    // name instead of the whole list — keeps the link short enough to survive
+    // copy/paste and messaging apps without getting mangled or cut off.
+    const themeKey = themeSelect.value;
+    let state;
+    if(themeKey && THEMES[themeKey] && items.length === THEMES[themeKey].length && items.every((v, idx) => v === THEMES[themeKey][idx])){
+      state = { t: title, k: themeKey, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
+    } else {
+      state = { t: title, i: items, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
+    }
     location.hash = 'c=' + encodeState(state);
     loadFromHash();
   });
@@ -422,9 +431,13 @@
     '<path d="M20 50 C20 25 40 12 50 15 C60 12 82 25 82 50 C82 75 60 88 50 85 C40 88 20 75 20 50 Z"/>'
   ];
 
+  function resolveItems(state){
+    return state.i || THEMES[state.k] || [];
+  }
+
   function pickItemsForCard(state){
     const need = state.f ? state.s*state.s - 1 : state.s*state.s;
-    const pool = state.i.slice();
+    const pool = resolveItems(state).slice();
     if(pool.length <= need){
       const shuffledPool = shuffle(pool);
       const chosen = [];
@@ -452,7 +465,7 @@
     won = false;
     winBanner.classList.remove('show');
     renderCard();
-    gameId = hashStr(JSON.stringify({t:state.t, i:state.i, s:state.s, f:state.f, o:state.o}));
+    gameId = hashStr(JSON.stringify({t:state.t, i:resolveItems(state), s:state.s, f:state.f, o:state.o}));
     refreshLeaderboard();
     if(pollId) clearInterval(pollId);
     pollId = setInterval(refreshLeaderboard, 7000);
@@ -516,9 +529,17 @@
     const url = location.origin + location.pathname + '#c=' + encodeState(currentState);
     shareLinkInput.value = url;
   }
+  if(navigator.share){ copyBtn.textContent = 'Share link'; }
   copyBtn.addEventListener('click', () => {
+    const url = shareLinkInput.value;
+    // Prefer the native share sheet on phones — it hands the exact URL straight
+    // to Messages/Mail/etc. so nothing gets mis-copied or visually truncated.
+    if(navigator.share){
+      navigator.share({ title: currentState ? currentState.t : 'Bingalinga!', url }).catch(() => {});
+      return;
+    }
     shareLinkInput.select();
-    if(navigator.clipboard){ navigator.clipboard.writeText(shareLinkInput.value).then(showCopied).catch(()=>{document.execCommand('copy'); showCopied();}); }
+    if(navigator.clipboard){ navigator.clipboard.writeText(url).then(showCopied).catch(()=>{document.execCommand('copy'); showCopied();}); }
     else { document.execCommand('copy'); showCopied(); }
   });
   function showCopied(){ const orig = copyBtn.textContent; copyBtn.textContent = 'Copied ✓'; setTimeout(() => copyBtn.textContent = orig, 1400); }
@@ -580,7 +601,7 @@
     const hash = location.hash.replace(/^#/, '');
     if(hash.startsWith('c=')){
       const state = decodeState(hash.slice(2));
-      if(state && Array.isArray(state.i) && state.i.length){
+      if(state && resolveItems(state).length){
         builderView.classList.add('hidden');
         playView.classList.remove('hidden');
         buildCard(state);
