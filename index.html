@@ -692,17 +692,39 @@
       bgClearBtn.classList.add('hidden');
     }
 
+    let configSaved = false;
     if(fbDb){
       const updates = {};
       updates['games/' + state.id + '/config'] = stripId(state);
       // Claiming admin only happens once, at creation, and only if signed in —
       // an anonymous card can still be made, it just has no admin later.
       if(currentUser) updates['games/' + state.id + '/ownerUid'] = currentUser.uid;
-      try{ await fbDb.ref().update(updates); }
-      catch(err){ console.error('card session save failed — link will still work, just without live edits', err); }
+      try{
+        await fbDb.ref().update(updates);
+        configSaved = true;
+      }catch(err){
+        console.error('card session save failed', err);
+        // Surface this instead of failing silently — it means live editing,
+        // admin claim, and (for long custom lists) the short link below will
+        // all be unavailable for this specific card. Use alert(), not
+        // errorMsg, since errorMsg lives inside #builderView and would get
+        // hidden the moment we switch to the play view right after this.
+        alert("Heads up: this card's live session couldn't be saved (" +
+          (err && err.message ? err.message : 'unknown error') +
+          ").\n\nThe link below will still work, but admin/edit features won't, and very long lists may not survive copy-paste. This usually means the Realtime Database rules from the setup guide haven't been published yet.");
+      }
     }
 
-    history.pushState(null, '', '?c=' + encodeState(state));
+    // When the card's full config is safely stored server-side, leave the
+    // (potentially long) item list out of the link itself — this is what
+    // keeps custom lists from getting mangled or truncated when copy-pasted
+    // or sent through messaging apps. Small fields (title/size/theme/etc.)
+    // stay in the link either way, so it still mostly works even if whoever
+    // opens it can't reach Firebase for some reason.
+    const linkState = Object.assign({}, state);
+    if(configSaved && linkState.i) delete linkState.i;
+
+    history.pushState(null, '', '?c=' + encodeState(linkState));
     loadFromQuery();
   });
 
@@ -1239,23 +1261,7 @@
     }
   });
 
-  function loadFromQuery(){
-    const params = new URLSearchParams(location.search);
-    const c = params.get('c');
-    // Back-compat: still honor old links that used a #c=... fragment.
-    const legacy = !c && location.hash.replace(/^#/, '').startsWith('c=')
-      ? location.hash.replace(/^#/, '').slice(2) : null;
-    const encoded = c || legacy;
-    if(encoded){
-      const state = decodeState(encoded);
-      if(state && resolveItems(state).length){
-        builderView.classList.add('hidden');
-        playView.classList.remove('hidden');
-        enterPlaySession(state);
-        loadPlayerName().then(n => { if(n) playerNameInput.value = n; });
-        return;
-      }
-    }
+  function showBuilder(errorText){
     stopWatchingScores();
     stopWatchingBackground();
     stopWatchingConfig();
@@ -1265,6 +1271,51 @@
     applyThemeStyle(themeSelect.value || null);
     builderView.classList.remove('hidden');
     playView.classList.add('hidden');
+    if(errorText){
+      errorMsg.textContent = errorText;
+      errorMsg.classList.remove('hidden');
+    }
+  }
+
+  async function loadFromQuery(){
+    const params = new URLSearchParams(location.search);
+    const c = params.get('c');
+    // Back-compat: still honor old links that used a #c=... fragment.
+    const legacy = !c && location.hash.replace(/^#/, '').startsWith('c=')
+      ? location.hash.replace(/^#/, '').slice(2) : null;
+    const encoded = c || legacy;
+    if(encoded){
+      const urlState = decodeState(encoded);
+      if(urlState){
+        let fullState = urlState;
+        // Newer links may leave a long custom item list out of the URL on
+        // purpose (see the generate handler) and rely on this card's id to
+        // fetch it back — merge in whatever Firebase has, which also picks
+        // up any admin edits made since the link was first shared.
+        if(urlState.id && fbDb){
+          try{
+            const snap = await fbDb.ref('games/' + urlState.id + '/config').once('value');
+            const cfg = snap.val();
+            if(cfg) fullState = Object.assign({}, urlState, cfg, { id: urlState.id });
+          }catch(err){ console.error('card fetch failed — falling back to the link\'s own copy', err); }
+        }
+        if(resolveItems(fullState).length){
+          builderView.classList.add('hidden');
+          playView.classList.remove('hidden');
+          enterPlaySession(fullState);
+          loadPlayerName().then(n => { if(n) playerNameInput.value = n; });
+          return;
+        }
+        // We recognized this as a card link (it has an id) but couldn't get
+        // its contents from anywhere — say so plainly instead of silently
+        // landing on the builder with no explanation.
+        if(urlState.id){
+          showBuilder("This card's link couldn't be fully loaded — it may be broken, or its session hasn't finished saving yet. Try again in a moment, or ask whoever sent it to re-share the link.");
+          return;
+        }
+      }
+    }
+    showBuilder();
   }
 
   window.addEventListener('popstate', loadFromQuery);
