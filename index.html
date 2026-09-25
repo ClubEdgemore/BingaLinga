@@ -334,6 +334,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics-compat.js"></script>
 
 <script>
 (function(){
@@ -843,7 +844,8 @@
     projectId: "bingalinga-1ac83",
     storageBucket: "bingalinga-1ac83.firebasestorage.app",
     messagingSenderId: "205300858047",
-    appId: "1:205300858047:web:a1a5bd69e23d99cb0b1a0a"
+    appId: "1:205300858047:web:a1a5bd69e23d99cb0b1a0a",
+    measurementId: "G-CY4H3DKJKG"
   };
 
   let fbDb = null, fbStorage = null;
@@ -852,6 +854,9 @@
       firebase.initializeApp(FIREBASE_CONFIG);
       fbDb = firebase.database();
       fbStorage = firebase.storage();
+      // Analytics is optional and often blocked by ad/tracker blockers —
+      // keep it from ever taking down the database/storage setup above.
+      try{ if(firebase.analytics) firebase.analytics(); }catch(e){ console.error('Analytics init failed', e); }
     }
   }catch(e){ console.error('Firebase init failed — falling back to device-only scores', e); fbDb = null; fbStorage = null; }
 
