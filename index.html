@@ -180,21 +180,21 @@
   }
   .print-group .btn-small { flex:1; padding: 10px 8px; font-size:13px; }
 
-  .card-grid { margin: 24px auto 4px; display: grid; gap: 8px; width: 100%; aspect-ratio: 1 / 1; }
+  .card-grid { margin: 24px auto 4px; display: grid; gap: 6px; width: 100%; aspect-ratio: 1 / 1; }
   .cell {
     aspect-ratio: 1 / 1;
     position: relative; background: #fffef9; border: 2px solid var(--paper-line); border-radius: var(--radius-cell);
-    display:flex; align-items:center; justify-content:center; text-align:center; padding: 6px; cursor: pointer;
+    display:flex; align-items:center; justify-content:center; text-align:center; padding: 0; cursor: pointer;
     overflow: hidden; user-select:none; transition: border-color .12s ease, transform .08s ease;
   }
   .cell:hover { transform: translateY(-2px); border-color: #cfc8ae; }
   .cell .txt {
-    font-size: clamp(9px, 2.1vw, 13.5px); font-weight: 600; line-height: 1.2; z-index: 2; color: var(--ink); word-break: break-word;
+    font-size: clamp(9px, 2.3vw, 13.5px); font-weight: 600; line-height: 1.15; z-index: 2; color: var(--ink); word-break: break-word;
     display:flex; align-items:center; justify-content:center;
     align-items: safe center; justify-content: safe center;
     width:100%; height:100%; max-height:100%;
     overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain;
-    padding: 1px 2px; scrollbar-width: thin; scrollbar-color: var(--paper-line) transparent;
+    padding: 2px 3px; scrollbar-width: thin; scrollbar-color: var(--paper-line) transparent;
   }
   .cell .txt::-webkit-scrollbar { width: 4px; }
   .cell .txt::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 4px; }
@@ -305,6 +305,9 @@
       <input type="checkbox" id="freeSpace">
       <label for="freeSpace">Free center space (odd sizes only)</label>
     </div>
+    <div class="hidden" id="freeExtraRow" style="margin-top:8px;">
+      <input class="text-input" id="freeExtraInput" type="text" placeholder="Optional text under FREE (e.g. a name or date)" maxlength="40">
+    </div>
 
     <label class="field-label" for="bgImageInput">Background image <span style="text-transform:none;font-weight:500;">(optional)</span></label>
     <div class="bg-upload-row">
@@ -336,19 +339,6 @@
       <input type="text" id="playerName" placeholder="Your name" maxlength="24">
     </div>
 
-    <div class="share-bar">
-      <input type="text" id="shareLink" readonly>
-      <button class="btn-small" id="copyBtn">Copy link</button>
-    </div>
-    <div class="actions-row">
-      <button class="btn-small ghost" id="shuffleBtn">🔀 Shuffle</button>
-      <div class="print-group">
-        <input type="number" id="printCount" min="1" max="50" value="1" title="How many cards to print" aria-label="Number of cards to print">
-        <button class="btn-small ghost" id="printBtn">🖨️ Print 1 card</button>
-      </div>
-      <button class="btn-small ghost" id="resetBtn">✏️ Make my own</button>
-    </div>
-
     <div class="card-grid" id="cardGrid"></div>
     <div class="win-banner" id="winBanner">BINGO!</div>
 
@@ -360,6 +350,19 @@
       <div id="lbBody"><div class="lb-empty">No wins yet — first BINGO gets the top spot.</div></div>
       <div class="lb-note" id="lbNote">Scores are saved on this device only.</div>
       <button class="lb-reset hidden" id="lbReset">Reset scores for this card</button>
+    </div>
+
+    <div class="share-bar">
+      <input type="text" id="shareLink" readonly>
+      <button class="btn-small" id="copyBtn">Copy link</button>
+    </div>
+    <div class="actions-row">
+      <button class="btn-small ghost" id="shuffleBtn">🔀 Shuffle</button>
+      <div class="print-group">
+        <input type="number" id="printCount" min="1" max="50" value="1" title="How many cards to print" aria-label="Number of cards to print">
+        <button class="btn-small ghost" id="printBtn">🖨️ Print 1 card</button>
+      </div>
+      <button class="btn-small ghost" id="resetBtn">✏️ Make my own</button>
     </div>
 
     <div class="admin-panel hidden" id="adminPanel">
@@ -509,6 +512,8 @@
   const sizeRow = document.getElementById('sizeRow');
   const freeRow = document.getElementById('freeRow');
   const freeSpaceCheckbox = document.getElementById('freeSpace');
+  const freeExtraRow = document.getElementById('freeExtraRow');
+  const freeExtraInput = document.getElementById('freeExtraInput');
   const generateBtn = document.getElementById('generateBtn');
   const errorMsg = document.getElementById('errorMsg');
   const overflowBox = document.getElementById('overflowBox');
@@ -579,6 +584,12 @@
     }
   }
 
+  function updateFreeExtraVisibility(){
+    const show = !freeSpaceCheckbox.disabled && freeSpaceCheckbox.checked;
+    freeExtraRow.classList.toggle('hidden', !show);
+    if(!show) freeExtraInput.value = '';
+  }
+
   sizeRow.addEventListener('click', (e) => {
     const pill = e.target.closest('.pill');
     if(!pill) return;
@@ -589,9 +600,10 @@
     freeRow.classList.toggle('disabled', !odd);
     if(!odd) freeSpaceCheckbox.checked = false;
     freeSpaceCheckbox.disabled = !odd;
+    updateFreeExtraVisibility();
     updateHints();
   });
-  freeSpaceCheckbox.addEventListener('change', updateHints);
+  freeSpaceCheckbox.addEventListener('change', () => { updateFreeExtraVisibility(); updateHints(); });
   itemsInput.addEventListener('input', updateHints);
   freeSpaceCheckbox.disabled = true;
 
@@ -669,6 +681,7 @@
       // look was picked, so the card keeps that look and feel when shared.
       if(styleKey) state.y = styleKey;
     }
+    if(isFree && freeExtraInput.value.trim()) state.fx = freeExtraInput.value.trim();
     // Every new card gets its own random, permanent session id so its title/
     // items can be edited later without forking into a new scoreboard.
     state.id = genId();
@@ -827,6 +840,7 @@
     };
     const style = currentState.y || currentState.k || null;
     if(style) newConfig.y = style;
+    if(currentState.fx) newConfig.fx = currentState.fx;
     const origLabel = editSaveBtn.textContent;
     editSaveBtn.disabled = true;
     editSaveBtn.textContent = 'Saving…';
@@ -907,7 +921,8 @@
       const color = ACCENTS[idx % ACCENTS.length];
       const rot = (idx * 37) % 40 - 20;
       cell.style.setProperty('--rot', rot + 'deg');
-      cell.innerHTML = '<div class="daub"><svg viewBox="0 0 100 100" fill="' + color + '" opacity="0.9">' + DAUB_SHAPES[shapeIdx] + '</svg></div><span class="txt">' + escapeHtml(label) + '</span>';
+      const cellHtml = (idx === freeIndex && currentState.fx) ? 'FREE<br>' + escapeHtml(currentState.fx) : escapeHtml(label);
+      cell.innerHTML = '<div class="daub"><svg viewBox="0 0 100 100" fill="' + color + '" opacity="0.9">' + DAUB_SHAPES[shapeIdx] + '</svg></div><span class="txt">' + cellHtml + '</span>';
       if(idx !== freeIndex){ cell.addEventListener('click', () => toggleCell(idx)); }
       cardGrid.appendChild(cell);
     });
@@ -1001,7 +1016,8 @@
       const cell = document.createElement('div');
       const label = (i === pFreeIndex) ? 'FREE' : chosenItems[ptr++];
       cell.className = 'cell' + (i === pFreeIndex ? ' free' : '');
-      cell.innerHTML = '<span class="txt">' + escapeHtml(label) + '</span>';
+      const cellHtml = (i === pFreeIndex && currentState.fx) ? 'FREE<br>' + escapeHtml(currentState.fx) : escapeHtml(label);
+      cell.innerHTML = '<span class="txt">' + cellHtml + '</span>';
       grid.appendChild(cell);
     }
     wrap.appendChild(grid);
@@ -1038,17 +1054,10 @@
   window.addEventListener('afterprint', endBatchPrint);
 
   resetBtn.addEventListener('click', () => {
-    stopWatchingScores();
-    stopWatchingBackground();
-    stopWatchingConfig();
-    applyPageBg(null);
-    ownerUid = null;
-    checkAdmin();
-    editPanel.classList.add('hidden');
-    history.pushState(null, '', location.pathname);
-    playView.classList.add('hidden');
-    builderView.classList.remove('hidden');
-    applyThemeStyle(themeSelect.value || null);
+    // Opens a fresh tab at the blank builder instead of navigating away from
+    // the card that's currently up — so this card, its scoreboard, and
+    // whatever's already marked stay put in this tab.
+    window.open(location.origin + location.pathname, '_blank', 'noopener');
   });
 
   // ---------- Firebase (shared, real-time leaderboard) ----------
