@@ -41,6 +41,30 @@
   body { display: flex; justify-content: center; padding: 40px 16px 80px; }
   .stage { width: 100%; max-width: 640px; }
 
+  .auth-bar { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom: 14px; font-size: 13px; color: #d9d5f0; }
+  .auth-bar .btn-small { padding: 6px 14px; font-size: 12.5px; }
+  /* #authBar (an id selector) so this reliably beats .btn-small.ghost's dark
+     ink color — that variant is meant for buttons sitting on the light paper
+     card, not out here on the dark page background. */
+  #authBar .btn-small {
+    background: rgba(255,255,255,0.08); color: #f1eefc; border-color: rgba(255,255,255,0.32);
+  }
+  #authBar .btn-small:hover { background: rgba(255,255,255,0.16); }
+  .auth-bar .who { display:flex; align-items:center; gap:8px; }
+  .auth-bar .who img { width:22px; height:22px; border-radius:50%; }
+  .auth-bar .auth-hint { color: #a29cc9; }
+
+  .admin-panel {
+    margin-top: 14px; background: var(--panel-bg); border-radius: 14px; padding: 14px 16px; border: 2px solid var(--panel-line);
+  }
+  .admin-panel .ap-title { font-family:'Fredoka', sans-serif; font-weight:700; font-size: 13px; text-transform:uppercase; letter-spacing:.05em; color: var(--ink-soft); margin-bottom: 10px; }
+  .admin-panel .ap-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .admin-panel .ap-actions .btn-small { flex:1; }
+  .edit-panel { margin-top: 12px; }
+  .edit-panel textarea.text-input { min-height: 110px; }
+  .edit-panel .ep-actions { display:flex; gap:10px; margin-top: 12px; }
+  .edit-panel .ep-actions .btn-small { flex:1; }
+
   .brand { text-align: center; margin-bottom: 28px; }
   .brand .mark {
     display: inline-flex; align-items: center; gap: 8px;
@@ -158,12 +182,23 @@
 
   .card-grid { margin: 24px auto 4px; display: grid; gap: 8px; width: 100%; aspect-ratio: 1 / 1; }
   .cell {
+    aspect-ratio: 1 / 1;
     position: relative; background: #fffef9; border: 2px solid var(--paper-line); border-radius: var(--radius-cell);
     display:flex; align-items:center; justify-content:center; text-align:center; padding: 6px; cursor: pointer;
     overflow: hidden; user-select:none; transition: border-color .12s ease, transform .08s ease;
   }
   .cell:hover { transform: translateY(-2px); border-color: #cfc8ae; }
-  .cell .txt { font-size: clamp(9px, 2.1vw, 13.5px); font-weight: 600; line-height: 1.2; z-index: 2; color: var(--ink); word-break: break-word; }
+  .cell .txt {
+    font-size: clamp(9px, 2.1vw, 13.5px); font-weight: 600; line-height: 1.2; z-index: 2; color: var(--ink); word-break: break-word;
+    display:flex; align-items:center; justify-content:center;
+    align-items: safe center; justify-content: safe center;
+    width:100%; height:100%; max-height:100%;
+    overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain;
+    padding: 1px 2px; scrollbar-width: thin; scrollbar-color: var(--paper-line) transparent;
+  }
+  .cell .txt::-webkit-scrollbar { width: 4px; }
+  .cell .txt::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 4px; }
+  .cell .txt::-webkit-scrollbar-track { background: transparent; }
   .cell.free .txt { font-family: var(--title-font), 'Fredoka', sans-serif; font-weight: 700; font-size: clamp(11px, 2.6vw, 15px); color: #8a6d00; }
   .cell.free { background: #fff6d9; border-color: #f4dd8f; }
   .cell.marked .txt { color: rgba(27,27,47,0.35); }
@@ -231,6 +266,15 @@
 
 <div class="stage">
   <div class="brand"><span class="mark"><span class="dot"></span>Bingalinga!</span></div>
+
+  <div class="auth-bar" id="authBar">
+    <button class="btn-small ghost" id="signInBtn">Sign in with Google</button>
+    <span class="who hidden" id="authWho">
+      <img id="authAvatar" alt="">
+      <span id="authName"></span>
+      <button class="btn-small ghost" id="signOutBtn">Sign out</button>
+    </span>
+  </div>
 
   <!-- BUILDER VIEW -->
   <div class="ticket" id="builderView">
@@ -315,7 +359,29 @@
       </div>
       <div id="lbBody"><div class="lb-empty">No wins yet — first BINGO gets the top spot.</div></div>
       <div class="lb-note" id="lbNote">Scores are saved on this device only.</div>
-      <button class="lb-reset" id="lbReset">Reset scores for this card</button>
+      <button class="lb-reset hidden" id="lbReset">Reset scores for this card</button>
+    </div>
+
+    <div class="admin-panel hidden" id="adminPanel">
+      <div class="ap-title">🛠️ You're this card's admin</div>
+      <div class="ap-actions">
+        <button class="btn-small ghost" id="editListBtn">✏️ Edit list</button>
+      </div>
+
+      <div class="edit-panel hidden" id="editPanel">
+        <label class="field-label" for="editTitle">Card title</label>
+        <input class="text-input" id="editTitle" type="text" maxlength="60">
+
+        <label class="field-label" for="editItems">Things to spot <span style="text-transform:none;font-weight:500;">(one per line)</span></label>
+        <textarea class="text-input" id="editItems"></textarea>
+        <div class="hint"><span class="counter" id="editCounter">0 items</span> — <span id="editNeededHint"></span></div>
+
+        <div class="ep-actions">
+          <button class="btn-small ghost" id="editCancelBtn">Cancel</button>
+          <button class="btn-small" id="editSaveBtn">Save changes for everyone</button>
+        </div>
+        <div class="error-msg hidden" id="editErrorMsg"></div>
+      </div>
     </div>
   </div>
 
@@ -335,6 +401,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 
 <script>
 (function(){
@@ -554,12 +621,27 @@
     return hash.toString(36);
   }
 
-  // Same session id used for the shared scoreboard: derived only from the
-  // card's actual content, so a re-generate with just a new background or
-  // look doesn't fork the leaderboard into a new session.
+  // Legacy session id for links generated before cards carried their own
+  // random `id` — derived from content so old shared links keep resolving to
+  // the same scoreboard/background session they always did. Nobody can be
+  // admin on these (no owner was ever recorded), which is expected.
   function computeGameId(title, items, s, f, o){
     return hashStr(JSON.stringify({t:title, i:items, s:s, f:f, o:o}));
   }
+
+  // Every newly generated card gets its own random, permanent session id —
+  // decoupled from its content — so the admin can edit the title/items later
+  // without forking into a new scoreboard/link.
+  function genId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, '').slice(0, 20);
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+
+  function resolveGameId(state){
+    return state.id || computeGameId(state.t, resolveItems(state), state.s, state.f, state.o);
+  }
+
+  function stripId(state){ const c = Object.assign({}, state); delete c.id; return c; }
 
   generateBtn.addEventListener('click', async () => {
     const title = cardTitleInput.value.trim() || 'Bingo Card';
@@ -587,14 +669,16 @@
       // look was picked, so the card keeps that look and feel when shared.
       if(styleKey) state.y = styleKey;
     }
+    // Every new card gets its own random, permanent session id so its title/
+    // items can be edited later without forking into a new scoreboard.
+    state.id = genId();
 
     if(selectedBgFile){
       const origLabel = generateBtn.textContent;
       generateBtn.disabled = true;
       generateBtn.textContent = 'Uploading image…';
       try{
-        const gid = computeGameId(title, items, size, isFree, overflowMode);
-        await uploadBgImage(gid, selectedBgFile);
+        await uploadBgImage(state.id, selectedBgFile);
       }catch(err){
         console.error('background upload failed', err);
         errorMsg.textContent = "Couldn't upload the background image (" + (err && err.message ? err.message : 'unknown error') + ") — continuing without it.";
@@ -606,6 +690,16 @@
       bgImageInput.value = '';
       bgPreview.classList.add('hidden');
       bgClearBtn.classList.add('hidden');
+    }
+
+    if(fbDb){
+      const updates = {};
+      updates['games/' + state.id + '/config'] = stripId(state);
+      // Claiming admin only happens once, at creation, and only if signed in —
+      // an anonymous card can still be made, it just has no admin later.
+      if(currentUser) updates['games/' + state.id + '/ownerUid'] = currentUser.uid;
+      try{ await fbDb.ref().update(updates); }
+      catch(err){ console.error('card session save failed — link will still work, just without live edits', err); }
     }
 
     history.pushState(null, '', '?c=' + encodeState(state));
@@ -630,8 +724,98 @@
   const lbReset = document.getElementById('lbReset');
   const lbLive = document.getElementById('lbLive');
   const lbNote = document.getElementById('lbNote');
+  const adminPanel = document.getElementById('adminPanel');
+  const editListBtn = document.getElementById('editListBtn');
+  const editPanel = document.getElementById('editPanel');
+  const editTitle = document.getElementById('editTitle');
+  const editItems = document.getElementById('editItems');
+  const editCounter = document.getElementById('editCounter');
+  const editNeededHint = document.getElementById('editNeededHint');
+  const editCancelBtn = document.getElementById('editCancelBtn');
+  const editSaveBtn = document.getElementById('editSaveBtn');
+  const editErrorMsg = document.getElementById('editErrorMsg');
 
   let currentState = null, marked = new Set(), cellItems = [], currentSize = 4, freeIndex = -1, won = false, gameId = null;
+  let ownerUid = null, isAdmin = false;
+
+  function checkAdmin(){
+    isAdmin = !!(currentUser && ownerUid && currentUser.uid === ownerUid);
+    updateAdminUI();
+  }
+
+  function updateAdminUI(){
+    adminPanel.classList.toggle('hidden', !isAdmin);
+    if(!isAdmin) editPanel.classList.add('hidden');
+    // Without Firebase there's no owner concept at all — keep the old
+    // "anyone can reset" behavior so device-only mode still works.
+    lbReset.classList.toggle('hidden', fbDb ? !isAdmin : false);
+  }
+
+  function watchOwner(){
+    ownerUid = null;
+    if(!fbDb){ checkAdmin(); return; }
+    fbDb.ref('games/' + gameId + '/ownerUid').once('value')
+      .then(snap => { ownerUid = snap.val() || null; checkAdmin(); })
+      .catch(err => { console.error('owner lookup failed', err); ownerUid = null; checkAdmin(); });
+  }
+
+  function openEditPanel(){
+    editTitle.value = currentState.t;
+    editItems.value = resolveItems(currentState).join('\n');
+    editErrorMsg.classList.add('hidden');
+    editPanel.classList.remove('hidden');
+    updateEditHint();
+  }
+  function updateEditHint(){
+    const items = editItems.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const need = currentState.f ? currentState.s * currentState.s - 1 : currentState.s * currentState.s;
+    editCounter.textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
+    editCounter.className = 'counter ' + (items.length >= need ? 'ok' : 'low');
+    editNeededHint.textContent = 'need at least ' + need + ' for this card\'s ' + currentState.s + '×' + currentState.s + ' size';
+  }
+  editItems.addEventListener('input', () => { if(currentState) updateEditHint(); });
+  editListBtn.addEventListener('click', () => {
+    if(editPanel.classList.contains('hidden')) openEditPanel();
+    else editPanel.classList.add('hidden');
+  });
+  editCancelBtn.addEventListener('click', () => editPanel.classList.add('hidden'));
+  editSaveBtn.addEventListener('click', async () => {
+    const title = editTitle.value.trim() || 'Bingo Card';
+    const items = editItems.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const need = currentState.f ? currentState.s * currentState.s - 1 : currentState.s * currentState.s;
+    editErrorMsg.classList.add('hidden');
+    if(items.length < need){
+      editErrorMsg.textContent = 'Add ' + (need - items.length) + ' more item' + ((need - items.length) === 1 ? '' : 's') + ' to fill this card.';
+      editErrorMsg.classList.remove('hidden');
+      return;
+    }
+    if(!fbDb){
+      editErrorMsg.textContent = 'Live editing needs Firebase set up — see the setup guide.';
+      editErrorMsg.classList.remove('hidden');
+      return;
+    }
+    // Keep this card's look, size, free-space and overflow choice — only the
+    // title and item list change here.
+    const newConfig = {
+      t: title, i: items, s: currentState.s, f: currentState.f,
+      o: currentState.o || 'cycle'
+    };
+    const style = currentState.y || currentState.k || null;
+    if(style) newConfig.y = style;
+    const origLabel = editSaveBtn.textContent;
+    editSaveBtn.disabled = true;
+    editSaveBtn.textContent = 'Saving…';
+    try{
+      await fbDb.ref('games/' + gameId + '/config').set(newConfig);
+      editPanel.classList.add('hidden');
+    }catch(err){
+      console.error('save failed', err);
+      editErrorMsg.textContent = "Couldn't save (" + (err && err.message ? err.message : 'unknown error') + ") — only this card's admin can edit it.";
+      editErrorMsg.classList.remove('hidden');
+    }
+    editSaveBtn.disabled = false;
+    editSaveBtn.textContent = origLabel;
+  });
 
   const DAUB_SHAPES = [
     '<circle cx="50" cy="50" r="34"/>',
@@ -674,9 +858,15 @@
     won = false;
     winBanner.classList.remove('show');
     renderCard();
-    gameId = computeGameId(state.t, resolveItems(state), state.s, state.f, state.o);
+  }
+
+  function enterPlaySession(initialState){
+    gameId = resolveGameId(initialState);
+    buildCard(initialState);
     watchScores();
     watchBackground();
+    watchConfig(initialState);
+    watchOwner();
   }
 
   function renderCard(){
@@ -820,7 +1010,11 @@
   resetBtn.addEventListener('click', () => {
     stopWatchingScores();
     stopWatchingBackground();
+    stopWatchingConfig();
     applyPageBg(null);
+    ownerUid = null;
+    checkAdmin();
+    editPanel.classList.add('hidden');
     history.pushState(null, '', location.pathname);
     playView.classList.add('hidden');
     builderView.classList.remove('hidden');
@@ -848,17 +1042,59 @@
     measurementId: "G-CY4H3DKJKG"
   };
 
-  let fbDb = null, fbStorage = null;
+  let fbDb = null, fbStorage = null, fbAuth = null;
   try{
     if(window.firebase && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'REPLACE_ME'){
       firebase.initializeApp(FIREBASE_CONFIG);
       fbDb = firebase.database();
       fbStorage = firebase.storage();
+      fbAuth = firebase.auth();
       // Analytics is optional and often blocked by ad/tracker blockers —
       // keep it from ever taking down the database/storage setup above.
       try{ if(firebase.analytics) firebase.analytics(); }catch(e){ console.error('Analytics init failed', e); }
     }
-  }catch(e){ console.error('Firebase init failed — falling back to device-only scores', e); fbDb = null; fbStorage = null; }
+  }catch(e){ console.error('Firebase init failed — falling back to device-only scores', e); fbDb = null; fbStorage = null; fbAuth = null; }
+
+  // ---------- Google sign-in (lets a card's creator become its admin) ----------
+  let currentUser = null;
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const authWho = document.getElementById('authWho');
+  const authAvatar = document.getElementById('authAvatar');
+  const authName = document.getElementById('authName');
+
+  function updateAuthUI(){
+    if(currentUser){
+      signInBtn.classList.add('hidden');
+      authWho.classList.remove('hidden');
+      if(currentUser.photoURL){ authAvatar.src = currentUser.photoURL; authAvatar.style.display = ''; }
+      else { authAvatar.style.display = 'none'; }
+      authName.textContent = currentUser.displayName || currentUser.email || 'Signed in';
+    } else {
+      signInBtn.classList.remove('hidden');
+      authWho.classList.add('hidden');
+    }
+  }
+
+  signInBtn.addEventListener('click', () => {
+    if(!fbAuth){ alert("Sign-in isn't set up yet — see the setup guide to enable Firebase Authentication."); return; }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    fbAuth.signInWithPopup(provider).catch(err => {
+      console.error('sign-in failed', err);
+      alert("Couldn't sign in: " + (err && err.message ? err.message : 'unknown error'));
+    });
+  });
+  signOutBtn.addEventListener('click', () => { if(fbAuth) fbAuth.signOut(); });
+
+  if(fbAuth){
+    fbAuth.onAuthStateChanged(user => {
+      currentUser = user;
+      updateAuthUI();
+      checkAdmin();
+    });
+  } else {
+    updateAuthUI();
+  }
 
   if(lbNote){
     lbNote.textContent = fbDb
@@ -905,6 +1141,29 @@
       Object.keys(raw).forEach(k => { scores[nameFromKey(k)] = raw[k]; });
       renderLeaderboard(scores);
     }, err => { console.error('leaderboard sync failed', err); refreshLeaderboard(); });
+  }
+
+  // ---------- live card config (title/items can be edited by the admin) ----------
+  let configRef = null, configListener = null, lastAppliedConfigJson = null;
+  function stopWatchingConfig(){
+    if(configRef && configListener){ configRef.off('value', configListener); }
+    configRef = null; configListener = null; lastAppliedConfigJson = null;
+  }
+  function watchConfig(initialState){
+    stopWatchingConfig();
+    lastAppliedConfigJson = JSON.stringify(stripId(initialState));
+    if(!fbDb) return;
+    configRef = fbDb.ref('games/' + gameId + '/config');
+    configListener = configRef.on('value', snap => {
+      const val = snap.val();
+      if(!val) return; // nothing saved server-side yet (legacy link, or offline) — keep the URL's version
+      const json = JSON.stringify(val);
+      if(json === lastAppliedConfigJson) return; // matches what's already showing — skip the reshuffle
+      lastAppliedConfigJson = json;
+      const wasEditing = !editPanel.classList.contains('hidden');
+      buildCard(Object.assign({}, val, { id: gameId }));
+      if(wasEditing) editPanel.classList.add('hidden');
+    }, err => console.error('config sync failed', err));
   }
 
   // ---------- per-session background image (Firebase Storage) ----------
@@ -992,14 +1251,17 @@
       if(state && resolveItems(state).length){
         builderView.classList.add('hidden');
         playView.classList.remove('hidden');
-        buildCard(state);
+        enterPlaySession(state);
         loadPlayerName().then(n => { if(n) playerNameInput.value = n; });
         return;
       }
     }
     stopWatchingScores();
     stopWatchingBackground();
+    stopWatchingConfig();
     applyPageBg(null);
+    ownerUid = null;
+    checkAdmin();
     applyThemeStyle(themeSelect.value || null);
     builderView.classList.remove('hidden');
     playView.classList.add('hidden');
