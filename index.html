@@ -759,6 +759,9 @@
 
   let currentState = null, marked = new Set(), cellItems = [], currentSize = 4, freeIndex = -1, won = false, gameId = null;
   let ownerUid = null, isAdmin = false;
+  // True once we've confirmed Firebase actually has this card's item list
+  // saved, so the share link (and address bar) can safely leave it out.
+  let remoteConfigReady = false;
 
   function checkAdmin(){
     isAdmin = !!(currentUser && ownerUid && currentUser.uid === ownerUid);
@@ -946,7 +949,12 @@
   }
 
   function updateShareLink(){
-    const url = location.origin + location.pathname + '?c=' + encodeState(currentState);
+    // Once we know Firebase actually has this card's item list saved, leave
+    // it out of the link here too — otherwise "Copy link" would hand out the
+    // long form even when the address bar itself is short.
+    const linkState = Object.assign({}, currentState);
+    if(remoteConfigReady && linkState.i) delete linkState.i;
+    const url = location.origin + location.pathname + '?c=' + encodeState(linkState);
     shareLinkInput.value = url;
   }
   if(navigator.share){ copyBtn.textContent = 'Share link'; }
@@ -1170,6 +1178,7 @@
   function stopWatchingConfig(){
     if(configRef && configListener){ configRef.off('value', configListener); }
     configRef = null; configListener = null; lastAppliedConfigJson = null;
+    remoteConfigReady = false;
   }
   function watchConfig(initialState){
     stopWatchingConfig();
@@ -1179,8 +1188,16 @@
     configListener = configRef.on('value', snap => {
       const val = snap.val();
       if(!val) return; // nothing saved server-side yet (legacy link, or offline) — keep the URL's version
+      // Confirmed: Firebase has this card's full item list, so the share
+      // link can safely leave it out from here on, even if nothing else
+      // about the card actually changed.
+      const wasReady = remoteConfigReady;
+      remoteConfigReady = true;
       const json = JSON.stringify(val);
-      if(json === lastAppliedConfigJson) return; // matches what's already showing — skip the reshuffle
+      if(json === lastAppliedConfigJson){
+        if(!wasReady) updateShareLink();
+        return; // matches what's already showing — skip the reshuffle
+      }
       lastAppliedConfigJson = json;
       const wasEditing = !editPanel.classList.contains('hidden');
       buildCard(Object.assign({}, val, { id: gameId }));
@@ -1296,7 +1313,13 @@
           try{
             const snap = await fbDb.ref('games/' + urlState.id + '/config').once('value');
             const cfg = snap.val();
-            if(cfg) fullState = Object.assign({}, urlState, cfg, { id: urlState.id });
+            if(cfg){
+              fullState = Object.assign({}, urlState, cfg, { id: urlState.id });
+              // Known good in Firebase already — set this before the first
+              // buildCard/updateShareLink so the share link comes out short
+              // right away, not just after the live listener catches up.
+              remoteConfigReady = true;
+            }
           }catch(err){ console.error('card fetch failed — falling back to the link\'s own copy', err); }
         }
         if(resolveItems(fullState).length){
