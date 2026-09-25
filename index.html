@@ -5,12 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bingalinga! — make a card, send a card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Bangers&family=Bungee&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg: #14121f;
+    --bg-glow-1: rgba(124,92,252,0.25);
+    --bg-glow-2: rgba(18,165,148,0.18);
     --paper: #fffcf5;
     --paper-line: #e8e2d0;
+    --panel-bg: #f6f2e6;
+    --panel-line: #ddd3b0;
     --ink: #1b1b2f;
     --ink-soft: #55516b;
     --marigold: #f4b400;
@@ -18,6 +22,7 @@
     --teal: #12a594;
     --violet: #7c5cfc;
     --sky: #3aa0ff;
+    --title-font: 'Fredoka';
     --radius-card: 22px;
     --radius-cell: 12px;
   }
@@ -25,12 +30,13 @@
   html, body {
     margin: 0; min-height: 100%;
     background:
-      radial-gradient(circle at 15% 10%, rgba(124,92,252,0.25), transparent 45%),
-      radial-gradient(circle at 85% 90%, rgba(18,165,148,0.18), transparent 45%),
+      radial-gradient(circle at 15% 10%, var(--bg-glow-1), transparent 45%),
+      radial-gradient(circle at 85% 90%, var(--bg-glow-2), transparent 45%),
       var(--bg);
     color: var(--ink);
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background .35s ease;
   }
   body { display: flex; justify-content: center; padding: 40px 16px 80px; }
   .stage { width: 100%; max-width: 640px; }
@@ -50,6 +56,7 @@
     padding: 34px 30px 30px;
     box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.4) inset;
     transform: rotate(-0.6deg);
+    transition: background .35s ease;
   }
   .ticket::before, .ticket::after{
     content:""; position:absolute; left:0; right:0; height:14px;
@@ -59,7 +66,7 @@
   .ticket::before{ top:-7px; }
   .ticket::after{ bottom:-7px; transform: scaleY(-1); }
 
-  h1.title { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 30px; line-height: 1.05; margin: 4px 0 4px; letter-spacing: -0.01em; }
+  h1.title { font-family: var(--title-font), 'Fredoka', sans-serif; font-weight: 700; font-size: 30px; line-height: 1.05; margin: 4px 0 4px; letter-spacing: -0.01em; }
   .subtitle { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 16px; }
 
   label.field-label {
@@ -96,8 +103,15 @@
   .toggle-row input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--violet); }
   .toggle-row.disabled { opacity: 0.4; }
 
+  .bg-upload-row { display:flex; align-items:center; gap:10px; }
+  .bg-upload-row input[type="file"] { flex:1; font-size: 13px; color: var(--ink-soft); }
+  .bg-preview { margin-top: 10px; display:flex; align-items:center; gap:10px; }
+  .bg-preview img {
+    width: 90px; height: 56px; object-fit: cover; border-radius: 10px; border: 2px solid var(--paper-line);
+  }
+
   .overflow-box {
-    margin-top: 16px; background: #f6f2e6; border: 2px dashed #ddd3b0; border-radius: 12px; padding: 12px 14px;
+    margin-top: 16px; background: var(--panel-bg); border: 2px dashed var(--panel-line); border-radius: 12px; padding: 12px 14px;
     font-size: 13.5px; color: var(--ink-soft);
   }
   .overflow-box .ob-title { font-weight: 700; color: var(--ink); margin-bottom: 8px; font-family:'Fredoka', sans-serif; }
@@ -106,11 +120,11 @@
 
   .btn-primary {
     margin-top: 24px; width: 100%; font-family:'Fredoka', sans-serif; font-weight: 700; font-size: 17px;
-    letter-spacing: 0.01em; color: #1a1428; background: linear-gradient(180deg, #ffd23f, var(--marigold));
+    letter-spacing: 0.01em; color: #1a1428; background: linear-gradient(180deg, color-mix(in srgb, var(--marigold) 85%, white), var(--marigold));
     border: none; border-radius: 14px; padding: 15px 20px; cursor: pointer;
-    box-shadow: 0 6px 0 #b98300, 0 12px 20px -6px rgba(244,180,0,0.5); transition: transform .08s ease, box-shadow .08s ease;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 12px 20px -6px rgba(244,180,0,0.5); transition: transform .08s ease, box-shadow .08s ease, background .35s ease;
   }
-  .btn-primary:active { transform: translateY(4px); box-shadow: 0 2px 0 #b98300, 0 6px 12px -6px rgba(244,180,0,0.5); }
+  .btn-primary:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 6px 12px -6px rgba(244,180,0,0.5); }
 
   .error-msg { color: var(--coral); font-size: 13.5px; margin-top: 10px; font-weight: 600; }
 
@@ -122,8 +136,8 @@
 
   .share-bar { display:flex; gap: 8px; margin: 14px 0 6px; }
   .share-bar input {
-    flex:1; font-family:'JetBrains Mono', monospace; font-size: 13px; background:#f6f2e6;
-    border: 2px solid var(--paper-line); border-radius: 10px; padding: 10px 12px; color: var(--ink-soft);
+    flex:1; font-family:'JetBrains Mono', monospace; font-size: 13px; background: var(--panel-bg);
+    border: 2px solid var(--panel-line); border-radius: 10px; padding: 10px 12px; color: var(--ink-soft);
   }
   .btn-small {
     font-family:'Fredoka', sans-serif; font-weight:600; font-size:14px; border-radius: 10px; border: 2px solid var(--ink);
@@ -134,6 +148,13 @@
 
   .actions-row { display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap; }
   .actions-row .btn-small { flex:1; padding: 10px 10px; font-size:13px; }
+  .print-group { display:flex; align-items:center; gap:6px; flex:1; min-width: 150px; }
+  .print-group input[type="number"] {
+    width: 46px; flex: none; text-align:center; font-family:'JetBrains Mono', monospace; font-size:13px;
+    border: 2px solid var(--paper-line); border-radius: 8px; padding: 8px 4px; color: var(--ink);
+    background: #fffef9;
+  }
+  .print-group .btn-small { flex:1; padding: 10px 8px; font-size:13px; }
 
   .card-grid { margin: 24px auto 4px; display: grid; gap: 8px; width: 100%; aspect-ratio: 1 / 1; }
   .cell {
@@ -143,7 +164,7 @@
   }
   .cell:hover { transform: translateY(-2px); border-color: #cfc8ae; }
   .cell .txt { font-size: clamp(9px, 2.1vw, 13.5px); font-weight: 600; line-height: 1.2; z-index: 2; color: var(--ink); word-break: break-word; }
-  .cell.free .txt { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: clamp(11px, 2.6vw, 15px); color: #8a6d00; }
+  .cell.free .txt { font-family: var(--title-font), 'Fredoka', sans-serif; font-weight: 700; font-size: clamp(11px, 2.6vw, 15px); color: #8a6d00; }
   .cell.free { background: #fff6d9; border-color: #f4dd8f; }
   .cell.marked .txt { color: rgba(27,27,47,0.35); }
   .daub {
@@ -154,19 +175,21 @@
   .daub svg { width: 82%; height: 82%; }
 
   .win-banner {
-    margin-top: 16px; text-align:center; font-family:'Fredoka', sans-serif; font-weight:700; font-size: 26px;
+    margin-top: 16px; text-align:center; font-family: var(--title-font), 'Fredoka', sans-serif; font-weight:700; font-size: 26px;
     color: var(--coral); letter-spacing: 0.03em; opacity:0; transform: scale(0.6) rotate(-6deg);
     transition: opacity .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
   }
   .win-banner.show { opacity:1; transform: scale(1) rotate(-4deg); }
 
   .leaderboard {
-    margin-top: 22px; background: #f6f2e6; border-radius: 14px; padding: 16px 18px; border: 2px solid var(--paper-line);
+    margin-top: 22px; background: var(--panel-bg); border-radius: 14px; padding: 16px 18px; border: 2px solid var(--panel-line);
+    transition: background .35s ease;
   }
   .leaderboard .lb-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
   .leaderboard .lb-title { font-family:'Fredoka', sans-serif; font-weight:700; font-size: 15px; }
+  .leaderboard .lb-live { display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--teal); margin-left:6px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 25%, transparent); }
   .leaderboard .lb-refresh { background:none; border:none; cursor:pointer; font-size:16px; color: var(--ink-soft); }
-  .lb-row { display:flex; justify-content:space-between; padding: 6px 0; font-size: 14px; border-top: 1px solid var(--paper-line); }
+  .lb-row { display:flex; justify-content:space-between; padding: 6px 0; font-size: 14px; border-top: 1px solid var(--panel-line); }
   .lb-row:first-child { border-top:none; }
   .lb-name { font-weight: 600; }
   .lb-score { font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--violet); }
@@ -180,6 +203,14 @@
   .confetti-piece { position: fixed; top: -20px; width: 9px; height: 14px; z-index: 999; animation: fall linear forwards; border-radius: 2px; }
   @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0.9; } }
 
+  .print-batch { display:none; }
+  .print-batch .print-card { padding: 10px; }
+  .print-batch .print-card h2 {
+    font-family: var(--title-font), 'Fredoka', sans-serif; font-weight:700; font-size: 20px;
+    text-align:center; margin: 0 0 12px; color: var(--ink);
+  }
+  .print-batch .print-grid { display:grid; gap:8px; width:100%; max-width: 560px; margin: 0 auto; aspect-ratio: 1/1; }
+
   @media (max-width: 480px){ .ticket{ padding: 26px 18px 22px; } h1.title{ font-size: 25px; } }
 
   @media print {
@@ -189,6 +220,10 @@
     .ticket::before, .ticket::after { display:none; }
     .cell { break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .cell.free { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body.printing-batch #playView { display: none !important; }
+    body.printing-batch .print-batch { display:block !important; }
+    .print-batch .print-card { break-after: page; }
+    .print-batch .print-card:last-child { break-after: auto; }
   }
 </style>
 </head>
@@ -227,6 +262,14 @@
       <label for="freeSpace">Free center space (odd sizes only)</label>
     </div>
 
+    <label class="field-label" for="bgImageInput">Background image <span style="text-transform:none;font-weight:500;">(optional)</span></label>
+    <div class="bg-upload-row">
+      <input type="file" id="bgImageInput" accept="image/*">
+      <button class="btn-small ghost hidden" id="bgClearBtn" type="button">Remove</button>
+    </div>
+    <div class="bg-preview hidden" id="bgPreview"><img id="bgPreviewImg" alt="Background preview"></div>
+    <div class="hint">Shows behind the card for everyone who opens this link.</div>
+
     <div class="overflow-box hidden" id="overflowBox">
       <div class="ob-title">You've got more items than the card needs</div>
       <label><input type="radio" name="overflow" value="first"> Keep the same first <span id="ofNeed1">—</span> items every time</label>
@@ -255,7 +298,10 @@
     </div>
     <div class="actions-row">
       <button class="btn-small ghost" id="shuffleBtn">🔀 Shuffle</button>
-      <button class="btn-small ghost" id="printBtn">🖨️ Print / PDF</button>
+      <div class="print-group">
+        <input type="number" id="printCount" min="1" max="50" value="1" title="How many cards to print" aria-label="Number of cards to print">
+        <button class="btn-small ghost" id="printBtn">🖨️ Print 1 card</button>
+      </div>
       <button class="btn-small ghost" id="resetBtn">✏️ Make my own</button>
     </div>
 
@@ -264,29 +310,119 @@
 
     <div class="leaderboard" id="leaderboard">
       <div class="lb-head">
-        <span class="lb-title">🏆 Scoreboard</span>
+        <span class="lb-title">🏆 Scoreboard<span class="lb-live hidden" id="lbLive" title="Live"></span></span>
         <button class="lb-refresh" id="lbRefresh" title="Refresh">⟳</button>
       </div>
       <div id="lbBody"><div class="lb-empty">No wins yet — first BINGO gets the top spot.</div></div>
-      <div class="lb-note">Scores are saved on this device only.</div>
+      <div class="lb-note" id="lbNote">Scores are saved on this device only.</div>
       <button class="lb-reset" id="lbReset">Reset scores for this card</button>
     </div>
   </div>
 
+  <div class="print-batch" id="printBatch"></div>
+
   <p class="footer-note">Made with Bingalinga! If this card was shared with you, opening the link plays it straight away — no sign up.</p>
 </div>
 
+<!--
+  Optional real-time shared leaderboard (Firebase Realtime Database).
+  Fill in FIREBASE_CONFIG near the top of the script below with your own
+  project's values and every card's scoreboard updates live for everyone
+  who has that card's link. Leave it as REPLACE_ME and the app keeps working
+  exactly as before, with scores saved to this device only.
+-->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
+
 <script>
 (function(){
-  const ACCENTS = ['#ff5a5f', '#12a594', '#7c5cfc', '#3aa0ff', '#f4b400'];
+  // ---------- per-theme look and feel ----------
+  const THEME_STYLES = {
+    'Night Out': {
+      bg:'#14121f', bgGlow1:'rgba(124,92,252,0.25)', bgGlow2:'rgba(18,165,148,0.18)',
+      paper:'#fffcf5', paperLine:'#e8e2d0', panelBg:'#f6f2e6', panelLine:'#ddd3b0',
+      ink:'#1b1b2f', inkSoft:'#55516b',
+      marigold:'#f4b400', coral:'#ff5a5f', teal:'#12a594', violet:'#7c5cfc', sky:'#3aa0ff',
+      titleFont:'Fredoka'
+    },
+    'Holiday Party': {
+      bg:'#0f1c17', bgGlow1:'rgba(209,55,63,0.28)', bgGlow2:'rgba(31,122,77,0.24)',
+      paper:'#fffdf6', paperLine:'#e6dfc8', panelBg:'#f3ece0', panelLine:'#ddc9a0',
+      ink:'#201814', inkSoft:'#5b5045',
+      marigold:'#e8b923', coral:'#d1373f', teal:'#1f7a4d', violet:'#8c1c2b', sky:'#7ec8e3',
+      titleFont:'Fredoka'
+    },
+    'Road Trip': {
+      bg:'#161b22', bgGlow1:'rgba(58,160,255,0.22)', bgGlow2:'rgba(232,130,58,0.22)',
+      paper:'#fdf8ec', paperLine:'#ecdfc0', panelBg:'#f5ecd6', panelLine:'#ddc98f',
+      ink:'#2b2416', inkSoft:'#6b6047',
+      marigold:'#e8823a', coral:'#c1502e', teal:'#7a9b57', violet:'#3aa0ff', sky:'#c9a86a',
+      titleFont:'Fredoka'
+    },
+    'Work Meeting': {
+      bg:'#10151c', bgGlow1:'rgba(79,107,237,0.18)', bgGlow2:'rgba(135,146,162,0.16)',
+      paper:'#fbfcfe', paperLine:'#dde2ea', panelBg:'#eef1f6', panelLine:'#d3d9e2',
+      ink:'#1c222c', inkSoft:'#5a6272',
+      marigold:'#c9a227', coral:'#d1495b', teal:'#1ba39c', violet:'#4f6bed', sky:'#8792a2',
+      titleFont:'Fredoka'
+    },
+    'Wedding Reception': {
+      bg:'#1c1620', bgGlow1:'rgba(232,160,180,0.26)', bgGlow2:'rgba(201,169,97,0.2)',
+      paper:'#fffaf6', paperLine:'#ecdfd8', panelBg:'#f7ece7', panelLine:'#ddc3ba',
+      ink:'#2b2024', inkSoft:'#6b5c62',
+      marigold:'#c9a961', coral:'#b8697d', teal:'#8a9a7b', violet:'#e8a0b4', sky:'#e8ddc7',
+      titleFont:'Fredoka'
+    },
+    'Music': {
+      bg:'#170c1e', bgGlow1:'rgba(255,46,136,0.28)', bgGlow2:'rgba(139,92,246,0.26)',
+      paper:'#fffbf5', paperLine:'#ece2f0', panelBg:'#f3e9f7', panelLine:'#d9c3e6',
+      ink:'#1e1424', inkSoft:'#5d5268',
+      marigold:'#ffcc00', coral:'#ff2e88', teal:'#39ff88', violet:'#8b5cf6', sky:'#00d4ff',
+      titleFont:'Bangers'
+    },
+    'Football': {
+      bg:'#0c1a12', bgGlow1:'rgba(46,139,61,0.3)', bgGlow2:'rgba(139,90,43,0.22)',
+      paper:'#fbfaf3', paperLine:'#e3ddc8', panelBg:'#eef0e2', panelLine:'#cdd0b8',
+      ink:'#1a2116', inkSoft:'#52594a',
+      marigold:'#d4a017', coral:'#c0392b', teal:'#2e8b3d', violet:'#8b5a2b', sky:'#e8e6df',
+      titleFont:'Bungee'
+    }
+  };
+  const DEFAULT_STYLE = THEME_STYLES['Night Out'];
 
-  // ---------- THEMES ----------
+  let ACCENTS = [DEFAULT_STYLE.coral, DEFAULT_STYLE.teal, DEFAULT_STYLE.violet, DEFAULT_STYLE.sky, DEFAULT_STYLE.marigold];
+
+  function applyThemeStyle(name){
+    const st = THEME_STYLES[name] || DEFAULT_STYLE;
+    const root = document.documentElement.style;
+    root.setProperty('--bg', st.bg);
+    root.setProperty('--bg-glow-1', st.bgGlow1);
+    root.setProperty('--bg-glow-2', st.bgGlow2);
+    root.setProperty('--paper', st.paper);
+    root.setProperty('--paper-line', st.paperLine);
+    root.setProperty('--panel-bg', st.panelBg);
+    root.setProperty('--panel-line', st.panelLine);
+    root.setProperty('--ink', st.ink);
+    root.setProperty('--ink-soft', st.inkSoft);
+    root.setProperty('--marigold', st.marigold);
+    root.setProperty('--coral', st.coral);
+    root.setProperty('--teal', st.teal);
+    root.setProperty('--violet', st.violet);
+    root.setProperty('--sky', st.sky);
+    root.setProperty('--title-font', "'" + st.titleFont + "'");
+    ACCENTS = [st.coral, st.teal, st.violet, st.sky, st.marigold];
+  }
+
+  // ---------- THEMES (items) ----------
   const THEMES = {
     'Night Out': ["Too Drunk","Birthday Celebration","Skimpy Outfit","Bum a Smoke","Karaoke","A Fall","Live Music","Trade Clothing","Get a Phone Number","Group Photo","Buy a Drink","Buy Someone Else a Drink","Make a Bathroom Friend","Take a Shot","Woo Girls","Last Call","Heavy Pour","Sticky Floor","Get Something for Free","Compliment Someone New","Someone Compliments You","Phone-Zoned Table","Sloppy Make-Out Session","Give Out Your Phone Number","Dance","Bachelorette / Bachelor Party","Spill a Drink","Bar Fight Almost Breaks Out","Bouncer Checks ID Twice","Lost Phone Panic","Someone Cries in the Bathroom","Bartender Remembers Your Order","Someone Falls in Their Heels","Group Chant or Toast","Rideshare Surge Pricing Complaint","Someone Loses Their Jacket","Awkward Run-In with an Ex","Line for the Bathroom"],
     'Holiday Party': ["Hang an Ornament","Compliment the Chef","Ask if You Can Help","Drunk Uncle","Ugly Sweater Winner","Mistletoe Dodging","Re-gifting Confession","Spill the Eggnog","Singing Carols","Santa Hat Selfie","Stealing the Best White Elephant Gift","Mariah Carey Playing","Complaining About Traffic","Fruitcake Sighting","Burned Gingerbread","Sneaking a Second Dessert","Awkward Co-worker Small Talk","Tangled Tree Lights","Sparkly Holiday Dress","Punch Bowl Refill","Festive Socks","Comparing Travel Plans","Showing off Pet Photos","Someone Asleep on the Couch","Red and Green Outfit","Checking the Football Score","Secret Santa Reveal","Someone Talks Politics","Holiday Playlist Request","Christmas Sweater Compliment","Plus-One Nobody Knows","Photo with Santa","Leftover Container Debate","Someone Forgets a Gift","Kids Opening Presents Early","Hot Cocoa Bar","Someone Falls Asleep by the Fireplace","Holiday Movie Reference"],
     'Road Trip': ["Cow","Out-of-State License Plate","Rest Stop Bathroom Break","Gas Station Snack Run","Someone Falls Asleep","\"Are We There Yet?\"","Road Construction","Speed Trap","Fast Food Drive-Thru","Windmill","Water Tower","Hitchhiker","Roadkill","Traffic Jam","Radio Station Loses Signal","Singing Along to the Radio","Someone Gets Carsick","Billboard for a Lawyer","Farm Animals","Train Crossing","Argument Over the AUX Cord","Wrong Turn","Someone Spills a Drink","State Welcome Sign","Toll Booth","Full Tank of Gas","Bug Splat on Windshield","Motorcycle Gang","Scenic Overlook Photo Stop","Someone Needs to Pee Immediately","Snack Debate","Flat Tire","GPS Recalculating","Classic Car Sighting","Funny Bumper Sticker","Rainbow","Someone Complains About the Temperature","Nap in the Backseat"],
     'Work Meeting': ["\"Let's Circle Back\"","Someone's on Mute","Awkward Silence","\"Can You See My Screen?\"","Dog Barking in the Background","Someone Joins Late","\"Sorry, Go Ahead\"","Meeting Runs Over Time","\"Let's Take This Offline\"","Buzzword (\"Synergy\")","Someone Eating on Camera","Bad Wifi Freeze","\"Can Everyone Hear Me?\"","Rescheduled Meeting","Small Talk About the Weather","Someone Multitasking (Obviously)","\"I'll Send a Follow-Up Email\"","Kid or Pet Interruption","Phone Rings Mid-Meeting","\"No Questions? Great.\"","Screen Share Fumble","Someone Forgets to Unmute","Coffee Mug Visible","\"Per My Last Email\"","Meeting Could've Been an Email","Someone Joins from Their Car","Awkward Laugh","\"Let's Take a Step Back\"","Someone's Camera Is Off","Virtual Background Glitch","Long-Winded Story","\"Just to Piggyback on That\"","Calendar Invite with No Agenda","Someone Checking Their Phone","\"Can We Push This to Next Week?\"","Interrupted by a Notification Ding","\"Quick Question\" That Isn't Quick","Meeting Ends Early (Miracle)"],
-    'Wedding Reception': ["Someone Cries During Vows","Best Man Forgets the Rings","Awkward Bouquet Toss","Open Bar Line","Kids Running Around","Someone Trips on the Dance Floor","Emotional Father-Daughter Dance","DJ Plays a Song Nobody Requested","Speech Runs Too Long","Someone Catches the Garter","Photo Booth Line","Awkward Plus-One","Complaints About the Seating Chart","Cake Smash","Electric Slide or Cha Cha Slide","Someone Gets Too Drunk","Wardrobe Malfunction","Flower Girl Meltdown","Toast Glass Clinking","Sneaky Selfie with the Couple","Late Arrival","Guest Book Signing","\"When's the Next Wedding?\"","Grandparents Dancing","Bridesmaid Dress Color Debate","Someone Loses a Shoe","First Dance Song Surprise","Centerpiece Compliment","Someone Sneaks Out Early","Overheard Ex Drama","Confetti or Sparkler Send-Off","Unsolicited Marriage Tip","Bartender Runs Out of Something","Wedding Hashtag Sighting","Officiant Cracks a Joke","Someone Asks About the Honeymoon","Couple's Dog in the Wedding Party","Late-Night Snack Table Raid"]
+    'Wedding Reception': ["Someone Cries During Vows","Best Man Forgets the Rings","Awkward Bouquet Toss","Open Bar Line","Kids Running Around","Someone Trips on the Dance Floor","Emotional Father-Daughter Dance","DJ Plays a Song Nobody Requested","Speech Runs Too Long","Someone Catches the Garter","Photo Booth Line","Awkward Plus-One","Complaints About the Seating Chart","Cake Smash","Electric Slide or Cha Cha Slide","Someone Gets Too Drunk","Wardrobe Malfunction","Flower Girl Meltdown","Toast Glass Clinking","Sneaky Selfie with the Couple","Late Arrival","Guest Book Signing","\"When's the Next Wedding?\"","Grandparents Dancing","Bridesmaid Dress Color Debate","Someone Loses a Shoe","First Dance Song Surprise","Centerpiece Compliment","Someone Sneaks Out Early","Overheard Ex Drama","Confetti or Sparkler Send-Off","Unsolicited Marriage Tip","Bartender Runs Out of Something","Wedding Hashtag Sighting","Officiant Cracks a Joke","Someone Asks About the Honeymoon","Couple's Dog in the Wedding Party","Late-Night Snack Table Raid"],
+    'Music': ["Crowd Surfing","Phone Flashlights Out","Opening Act Nobody Knows","Sound Check Feedback","Someone Films the Whole Song","Mosh Pit Forms","Encore Chant","Merch Line","Artist Brings Out a Special Guest","Someone Loses Their Voice Singing Along","Confetti Cannon","Broken Guitar String","Long Line for the Bathroom","Overpriced Beer","Crowd Surfing in Flip-Flops","Band Thanks the Wrong City","Drum Solo","Someone Proposes on Camera","Glow Sticks Everywhere","Stage Dive","Setlist Changes Last Minute","Fan Holds Up a Sign","Biggest Hit Saved for Last","Technical Difficulties","Someone Crying During Their Favorite Song","Group Singalong","Band Banter Between Songs","Losing Your Friends in the Crowd","Light Show","T-Shirt Cannon","Surprise Cover Song","Filming for Instagram Stories","Speaker Feedback Squeal","Fan Meets the Artist After","Complaining About Ticket Prices","Themed Outfit Sighting","Venue Runs Out of Water","Extended Instrumental Jam"],
+    'Football': ["Touchdown Dance","Instant Replay Review","Missed Field Goal","Beer Commercial","Fumble","Announcer Yells","Coach Argues With the Ref","Onside Kick Attempt","Half-Time Show","Someone Spills the Nachos","Fantasy Football Complaint","Flag on the Play","Two-Minute Warning","Overtime","Someone Falls Asleep on the Couch","Jersey Gets a Drink Spilled On It","Wings Run Out","Ref Signals Touchdown","Injury Timeout","Someone Yells at the TV","Interception","Quarterback Sacked","Missed Extra Point","Booth Review Overturns the Call","Team Calls a Timeout","Crowd Does the Wave","Cheerleader Routine","Total Blowout Score","Checking the Score on Your Phone","Kicker Gets Booed","Coin Toss","National Anthem","Pregame Analysis Drags On","Someone in Full Team Gear","Buffalo Chicken Dip Appears","Late Flag Thrown","Announcer Says \"Ballgame\"","Rivalry Debate Starts"]
   };
 
   const themeSelect = document.getElementById('themeSelect');
@@ -308,13 +444,47 @@
   const generateBtn = document.getElementById('generateBtn');
   const errorMsg = document.getElementById('errorMsg');
   const overflowBox = document.getElementById('overflowBox');
+  const bgImageInput = document.getElementById('bgImageInput');
+  const bgClearBtn = document.getElementById('bgClearBtn');
+  const bgPreview = document.getElementById('bgPreview');
+  const bgPreviewImg = document.getElementById('bgPreviewImg');
 
   let size = 4;
+  let selectedBgFile = null;
+
+  bgImageInput.addEventListener('change', () => {
+    const file = bgImageInput.files && bgImageInput.files[0];
+    if(!file) return;
+    errorMsg.classList.add('hidden');
+    if(!file.type.startsWith('image/')){
+      errorMsg.textContent = 'Please choose an image file.';
+      errorMsg.classList.remove('hidden');
+      bgImageInput.value = '';
+      return;
+    }
+    if(file.size > 8 * 1024 * 1024){
+      errorMsg.textContent = "That image is over 8MB — try a smaller one.";
+      errorMsg.classList.remove('hidden');
+      bgImageInput.value = '';
+      return;
+    }
+    selectedBgFile = file;
+    bgPreviewImg.src = URL.createObjectURL(file);
+    bgPreview.classList.remove('hidden');
+    bgClearBtn.classList.remove('hidden');
+  });
+  bgClearBtn.addEventListener('click', () => {
+    selectedBgFile = null;
+    bgImageInput.value = '';
+    bgPreview.classList.add('hidden');
+    bgClearBtn.classList.add('hidden');
+  });
 
   themeSelect.addEventListener('change', () => {
     const name = themeSelect.value;
     if(!name){ cardTitleInput.value=''; itemsInput.value=''; }
     else { cardTitleInput.value = name + ' Bingo'; itemsInput.value = THEMES[name].join('\n'); }
+    applyThemeStyle(name || null);
     updateHints();
   });
 
@@ -383,7 +553,14 @@
     return hash.toString(36);
   }
 
-  generateBtn.addEventListener('click', () => {
+  // Same session id used for the shared scoreboard: derived only from the
+  // card's actual content, so a re-generate with just a new background or
+  // look doesn't fork the leaderboard into a new session.
+  function computeGameId(title, items, s, f, o){
+    return hashStr(JSON.stringify({t:title, i:items, s:s, f:f, o:o}));
+  }
+
+  generateBtn.addEventListener('click', async () => {
     const title = cardTitleInput.value.trim() || 'Bingo Card';
     const items = parseItems();
     const need = neededCount();
@@ -394,16 +571,42 @@
       return;
     }
     const overflowMode = (document.querySelector('input[name="overflow"]:checked') || {}).value || 'cycle';
+    const styleKey = themeSelect.value || null;
+    const isFree = freeSpaceCheckbox.checked && size % 2 === 1;
     // If the items exactly match an unedited built-in theme, share just the theme
     // name instead of the whole list — keeps the link short enough to survive
     // copy/paste and messaging apps without getting mangled or cut off.
     const themeKey = themeSelect.value;
     let state;
     if(themeKey && THEMES[themeKey] && items.length === THEMES[themeKey].length && items.every((v, idx) => v === THEMES[themeKey][idx])){
-      state = { t: title, k: themeKey, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
+      state = { t: title, k: themeKey, s: size, f: isFree, o: overflowMode };
     } else {
-      state = { t: title, i: items, s: size, f: freeSpaceCheckbox.checked && size % 2 === 1, o: overflowMode };
+      state = { t: title, i: items, s: size, f: isFree, o: overflowMode };
+      // Items were edited (or built from scratch) — still remember which theme's
+      // look was picked, so the card keeps that look and feel when shared.
+      if(styleKey) state.y = styleKey;
     }
+
+    if(selectedBgFile){
+      const origLabel = generateBtn.textContent;
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Uploading image…';
+      try{
+        const gid = computeGameId(title, items, size, isFree, overflowMode);
+        await uploadBgImage(gid, selectedBgFile);
+      }catch(err){
+        console.error('background upload failed', err);
+        errorMsg.textContent = "Couldn't upload the background image (" + (err && err.message ? err.message : 'unknown error') + ") — continuing without it.";
+        errorMsg.classList.remove('hidden');
+      }
+      generateBtn.disabled = false;
+      generateBtn.textContent = origLabel;
+      selectedBgFile = null;
+      bgImageInput.value = '';
+      bgPreview.classList.add('hidden');
+      bgClearBtn.classList.add('hidden');
+    }
+
     history.pushState(null, '', '?c=' + encodeState(state));
     loadFromQuery();
   });
@@ -415,6 +618,8 @@
   const copyBtn = document.getElementById('copyBtn');
   const shuffleBtn = document.getElementById('shuffleBtn');
   const printBtn = document.getElementById('printBtn');
+  const printCountInput = document.getElementById('printCount');
+  const printBatch = document.getElementById('printBatch');
   const resetBtn = document.getElementById('resetBtn');
   const cardGrid = document.getElementById('cardGrid');
   const winBanner = document.getElementById('winBanner');
@@ -422,8 +627,10 @@
   const lbBody = document.getElementById('lbBody');
   const lbRefresh = document.getElementById('lbRefresh');
   const lbReset = document.getElementById('lbReset');
+  const lbLive = document.getElementById('lbLive');
+  const lbNote = document.getElementById('lbNote');
 
-  let currentState = null, marked = new Set(), cellItems = [], currentSize = 4, freeIndex = -1, won = false, gameId = null, pollId = null;
+  let currentState = null, marked = new Set(), cellItems = [], currentSize = 4, freeIndex = -1, won = false, gameId = null;
 
   const DAUB_SHAPES = [
     '<circle cx="50" cy="50" r="34"/>',
@@ -452,6 +659,7 @@
   function buildCard(state){
     currentState = state;
     currentSize = state.s;
+    applyThemeStyle(state.y || state.k || null);
     const n = currentSize * currentSize;
     freeIndex = state.f ? Math.floor(n/2) : -1;
     const chosen = pickItemsForCard(state);
@@ -465,10 +673,9 @@
     won = false;
     winBanner.classList.remove('show');
     renderCard();
-    gameId = hashStr(JSON.stringify({t:state.t, i:resolveItems(state), s:state.s, f:state.f, o:state.o}));
-    refreshLeaderboard();
-    if(pollId) clearInterval(pollId);
-    pollId = setInterval(refreshLeaderboard, 7000);
+    gameId = computeGameId(state.t, resolveItems(state), state.s, state.f, state.o);
+    watchScores();
+    watchBackground();
   }
 
   function renderCard(){
@@ -545,15 +752,119 @@
   function showCopied(){ const orig = copyBtn.textContent; copyBtn.textContent = 'Copied ✓'; setTimeout(() => copyBtn.textContent = orig, 1400); }
 
   shuffleBtn.addEventListener('click', () => buildCard(currentState));
-  printBtn.addEventListener('click', () => window.print());
+
+  function clampPrintCount(){
+    const n = parseInt(printCountInput.value, 10);
+    return Math.max(1, Math.min(50, isNaN(n) ? 1 : n));
+  }
+  function updatePrintLabel(){
+    const n = clampPrintCount();
+    printBtn.textContent = '🖨️ Print ' + n + (n === 1 ? ' card' : ' cards');
+  }
+  printCountInput.addEventListener('input', updatePrintLabel);
+  updatePrintLabel();
+
+  function renderPrintCard(chosenItems, idx, total){
+    const wrap = document.createElement('div');
+    wrap.className = 'print-card';
+    const h2 = document.createElement('h2');
+    h2.textContent = currentState.t + (total > 1 ? ' — Card ' + idx + ' of ' + total : '');
+    wrap.appendChild(h2);
+    const grid = document.createElement('div');
+    grid.className = 'print-grid';
+    grid.style.gridTemplateColumns = 'repeat(' + currentSize + ', 1fr)';
+    const n = currentSize * currentSize;
+    const pFreeIndex = currentState.f ? Math.floor(n/2) : -1;
+    let ptr = 0;
+    for(let i=0; i<n; i++){
+      const cell = document.createElement('div');
+      const label = (i === pFreeIndex) ? 'FREE' : chosenItems[ptr++];
+      cell.className = 'cell' + (i === pFreeIndex ? ' free' : '');
+      cell.innerHTML = '<span class="txt">' + escapeHtml(label) + '</span>';
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  // Each card in the batch gets its own shuffled draw from the pool (same as
+  // Shuffle / a fresh link), with a light de-dupe pass so a run of a few
+  // cards doesn't accidentally repeat the exact same card twice.
+  function buildPrintBatch(count){
+    printBatch.innerHTML = '';
+    const seen = new Set();
+    for(let c=0; c<count; c++){
+      let items, signature, tries = 0;
+      do{
+        items = pickItemsForCard(currentState);
+        signature = items.join('|');
+        tries++;
+      } while(seen.has(signature) && tries < 25 && items.length > 1);
+      seen.add(signature);
+      printBatch.appendChild(renderPrintCard(items, c + 1, count));
+    }
+  }
+
+  function endBatchPrint(){ document.body.classList.remove('printing-batch'); }
+  printBtn.addEventListener('click', () => {
+    const count = clampPrintCount();
+    buildPrintBatch(count);
+    document.body.classList.add('printing-batch');
+    window.print();
+    // afterprint doesn't fire reliably everywhere — clear the class on a timer too.
+    setTimeout(endBatchPrint, 2000);
+  });
+  window.addEventListener('afterprint', endBatchPrint);
+
   resetBtn.addEventListener('click', () => {
-    if(pollId) clearInterval(pollId);
+    stopWatchingScores();
+    stopWatchingBackground();
+    applyPageBg(null);
     history.pushState(null, '', location.pathname);
     playView.classList.add('hidden');
     builderView.classList.remove('hidden');
+    applyThemeStyle(themeSelect.value || null);
   });
 
-  // ---------- persistent name + scores (stored locally in this browser) ----------
+  // ---------- Firebase (shared, real-time leaderboard) ----------
+  // 1. Create a free project at https://console.firebase.google.com
+  // 2. Build > Realtime Database > Create Database
+  // 3. Project settings (gear icon) > General > "Your apps" > add a Web app >
+  //    copy the values it gives you into FIREBASE_CONFIG below.
+  // 4. In the Realtime Database "Rules" tab, use rules scoped to /games so
+  //    anyone with a card's link can read/write only that card's scores —
+  //    see the setup guide for a rules snippet.
+  // Leaving this as REPLACE_ME is fine — the app falls back to saving scores
+  // on this device only, exactly like before.
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyA2oxOqzKGOxH17_B-WqK_6_WktczJWIpc",
+    authDomain: "bingalinga-1ac83.firebaseapp.com",
+    databaseURL: "https://bingalinga-1ac83-default-rtdb.firebaseio.com",
+    projectId: "bingalinga-1ac83",
+    storageBucket: "bingalinga-1ac83.firebasestorage.app",
+    messagingSenderId: "205300858047",
+    appId: "1:205300858047:web:a1a5bd69e23d99cb0b1a0a"
+  };
+
+  let fbDb = null, fbStorage = null;
+  try{
+    if(window.firebase && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'REPLACE_ME'){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      fbDb = firebase.database();
+      fbStorage = firebase.storage();
+    }
+  }catch(e){ console.error('Firebase init failed — falling back to device-only scores', e); fbDb = null; fbStorage = null; }
+
+  if(lbNote){
+    lbNote.textContent = fbDb
+      ? "Scores are shared live with everyone who opens this card's link."
+      : "Scores are saved on this device only.";
+  }
+  if(lbLive) lbLive.classList.toggle('hidden', !fbDb);
+
+  function keyFor(name){ return encodeURIComponent(name).replace(/\./g, '%2E'); }
+  function nameFromKey(key){ try{ return decodeURIComponent(key.replace(/%2E/g,'.')); }catch(e){ return key; } }
+
   async function loadPlayerName(){
     try{ return localStorage.getItem('bingalinga:player-name') || ''; }catch(e){ return ''; }
   }
@@ -562,26 +873,86 @@
   }
   playerNameInput.addEventListener('change', () => savePlayerName(playerNameInput.value.trim()));
 
-  async function loadScores(){
+  async function loadLocalScores(){
     try{
       const raw = localStorage.getItem('bingalinga:scores:'+gameId);
       return raw ? JSON.parse(raw) : {};
     }catch(e){ return {}; }
   }
-  async function saveScores(scores){
+  async function saveLocalScores(scores){
     try{ localStorage.setItem('bingalinga:scores:'+gameId, JSON.stringify(scores)); }catch(e){ console.error('score save failed', e); }
   }
+
+  let scoresRef = null, scoresListener = null;
+
+  function stopWatchingScores(){
+    if(scoresRef && scoresListener){ scoresRef.off('value', scoresListener); }
+    scoresRef = null; scoresListener = null;
+  }
+
+  function watchScores(){
+    stopWatchingScores();
+    if(!fbDb){ refreshLeaderboard(); return; }
+    scoresRef = fbDb.ref('games/' + gameId + '/scores');
+    scoresListener = scoresRef.on('value', snap => {
+      const raw = snap.val() || {};
+      const scores = {};
+      Object.keys(raw).forEach(k => { scores[nameFromKey(k)] = raw[k]; });
+      renderLeaderboard(scores);
+    }, err => { console.error('leaderboard sync failed', err); refreshLeaderboard(); });
+  }
+
+  // ---------- per-session background image (Firebase Storage) ----------
+  async function uploadBgImage(gid, file){
+    if(!fbStorage) throw new Error('Firebase Storage is not set up yet');
+    const ext = ((file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')) || 'jpg';
+    const ref = fbStorage.ref().child('backgrounds/' + gid + '.' + ext);
+    await ref.put(file, { contentType: file.type || 'image/jpeg' });
+    const url = await ref.getDownloadURL();
+    if(fbDb){ await fbDb.ref('games/' + gid + '/bg').set(url); }
+    return url;
+  }
+
+  function applyPageBg(url){
+    if(url){
+      document.body.style.background = 'linear-gradient(rgba(10,8,16,0.45), rgba(10,8,16,0.45)), url("' + url.replace(/"/g, '%22') + '") center / cover fixed no-repeat';
+    } else {
+      document.body.style.background = '';
+    }
+  }
+
+  let bgRef = null, bgListener = null;
+  function stopWatchingBackground(){
+    if(bgRef && bgListener){ bgRef.off('value', bgListener); }
+    bgRef = null; bgListener = null;
+  }
+  function watchBackground(){
+    stopWatchingBackground();
+    applyPageBg(null);
+    if(!fbDb) return;
+    bgRef = fbDb.ref('games/' + gameId + '/bg');
+    bgListener = bgRef.on('value', snap => applyPageBg(snap.val() || null), err => console.error('background sync failed', err));
+  }
+
   async function recordWin(){
     const name = (playerNameInput.value.trim() || 'Guest').slice(0,24);
-    const scores = await loadScores();
-    scores[name] = (scores[name] || 0) + 1;
-    await saveScores(scores);
-    renderLeaderboard(scores);
+    if(fbDb){
+      fbDb.ref('games/' + gameId + '/scores/' + keyFor(name)).transaction(cur => (cur || 0) + 1)
+        .catch(err => console.error('score write failed', err));
+    } else {
+      const scores = await loadLocalScores();
+      scores[name] = (scores[name] || 0) + 1;
+      await saveLocalScores(scores);
+      renderLeaderboard(scores);
+    }
   }
+
   async function refreshLeaderboard(){
-    const scores = await loadScores();
+    if(fbDb) return; // the live listener in watchScores() keeps this current
+    const scores = await loadLocalScores();
     renderLeaderboard(scores);
   }
+
   function renderLeaderboard(scores){
     const entries = Object.entries(scores).sort((a,b) => b[1]-a[1]);
     if(!entries.length){ lbBody.innerHTML = '<div class="lb-empty">No wins yet — first BINGO gets the top spot.</div>'; return; }
@@ -592,9 +963,16 @@
   }
   lbRefresh.addEventListener('click', refreshLeaderboard);
   lbReset.addEventListener('click', async () => {
-    if(!confirm('Reset the scoreboard for this card on this device?')) return;
-    await saveScores({});
-    renderLeaderboard({});
+    const msg = fbDb
+      ? 'Reset the scoreboard for this card for everyone playing it?'
+      : 'Reset the scoreboard for this card on this device?';
+    if(!confirm(msg)) return;
+    if(fbDb){
+      await fbDb.ref('games/' + gameId + '/scores').remove().catch(err => console.error('score reset failed', err));
+    } else {
+      await saveLocalScores({});
+      renderLeaderboard({});
+    }
   });
 
   function loadFromQuery(){
@@ -614,11 +992,16 @@
         return;
       }
     }
+    stopWatchingScores();
+    stopWatchingBackground();
+    applyPageBg(null);
+    applyThemeStyle(themeSelect.value || null);
     builderView.classList.remove('hidden');
     playView.classList.add('hidden');
   }
 
   window.addEventListener('popstate', loadFromQuery);
+  applyThemeStyle(null);
   updateHints();
   loadFromQuery();
 })();
